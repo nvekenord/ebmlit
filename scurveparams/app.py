@@ -95,4 +95,12 @@ st.line_chart(s_curves.loc[select_building_category][ [
 st.session_state.building_category = select_building_category
 st.session_state.building_condition = select_building_condition
 
+df = st.session_state.s_curve_params
 
+def highlight_building_category_condition(r):
+    if r.name == (select_building_category, select_building_condition):
+        return ['font-weight: bold'] * len(r)
+    else:
+        return [''] * len(r)
+
+st.dataframe(df.style.apply(highlight_building_category_condition, axis=1))
