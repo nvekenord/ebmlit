@@ -9,13 +9,20 @@ from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
 from ebm.s_curve import scurve_parameters_to_scurve
 
+def highlight_building_category_condition(r):
+    if r.name == (select_building_category, select_building_condition):
+        return ['font-weight: bold'] * len(r)
+    else:
+        return [''] * len(r)
+
 building_codes = ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK10', 'TEK17']
-st.set_page_config(layout="wide", page_title='EBM s curves')
+page_title = 'EBM s curves'
+st.set_page_config(layout="wide", page_title=page_title)
 
 filplassering = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated' / 's_curve.csv'
 dm = DatabaseManager(FileHandler(directory = filplassering.parent))
 
-
+scurve_params = dm.get_scurve_params().set_index(['building_category', 'condition'])
 
 st.title('S Curves for ebm')
 if 'building_category' not in st.session_state:
@@ -25,9 +32,6 @@ if 'building_condition' not in st.session_state:
 
 if 's_curve_params' not in st.session_state:
     st.session_state.s_curve_params = dm.get_scurve_params().set_index(['building_category', 'condition'])
-
-def changed_building_category(**args):
-    print(args, st.session_state.building_category)
 
 select_building_category = st.sidebar.selectbox("building_category",
                                                 options=[str(bc) for bc in BuildingCategory],
@@ -49,9 +53,9 @@ if 'rush_share' not in st.session_state:
 if 'never_share' not in st.session_state:
     st.session_state.never_share = st.session_state.s_curve_params.at[(select_building_category, select_building_condition), 'never_share']
 
-
 earliest_age_for_measure = st.session_state.s_curve_params.at[(select_building_category, select_building_condition), 'earliest_age_for_measure']
 
+# If selected building_category or building_condition was changed, set column session states from s_curve_params
 if st.session_state.building_category!=select_building_category or st.session_state.building_condition!=select_building_condition:
     st.session_state.earliest_age_for_measure = st.session_state.s_curve_params.at[(select_building_category, select_building_condition), 'earliest_age_for_measure']
     st.session_state.average_age_for_measure = st.session_state.s_curve_params.at[(select_building_category, select_building_condition), 'average_age_for_measure']
@@ -84,13 +88,7 @@ never_share = st.sidebar.number_input(
     f'never_share ({selected_scurve_params.never_share})', value=st.session_state.never_share,
     min_value=0.0, max_value=1.0, step=0.01)
 
-last_age_for_measure = st.sidebar.slider('last_age_for_measure',
-                                         min_value=ceil(average_age_for_measure+(rush_period_years/2))+1,
-                                         max_value=130, step=1,
-                                         value=st.session_state.last_age_for_measure)
-rush_share = st.sidebar.number_input('rush_share', min_value=0.0, max_value=1.0, step=0.01, value=st.session_state.rush_share)
-never_share = st.sidebar.number_input('never_share', min_value=0.0, max_value=1.0, step=0.01, value=st.session_state.never_share)
-
+# Update session_state.s_curve_params from UI
 st.session_state.s_curve_params.at[(select_building_category, select_building_condition), 'earliest_age_for_measure'] = earliest_age
 st.session_state.s_curve_params.at[(select_building_category, select_building_condition), 'average_age_for_measure'] = average_age_for_measure
 st.session_state.s_curve_params.at[(select_building_category, select_building_condition), 'rush_period_years'] = rush_period_years
@@ -101,7 +99,7 @@ st.session_state.s_curve_params.at[(select_building_category, select_building_co
 s_curves = scurve_parameters_to_scurve(st.session_state.s_curve_params.reset_index())
 s_curves = pd.pivot_table(s_curves.reset_index(), index=['building_category', 'age'], columns=['building_condition'], values='scurve')
 
-st.write(f"# s-curve {select_building_category} ")
+st.write(f"## {select_building_category.capitalize()} ")
 
 st.line_chart(s_curves.loc[select_building_category][ [
     'demolition_acc',
@@ -109,15 +107,12 @@ st.line_chart(s_curves.loc[select_building_category][ [
     'renovation_acc',
 ]])
 
+# Save selected category and condition to state so that changes can be detected.
 st.session_state.building_category = select_building_category
 st.session_state.building_condition = select_building_condition
 
 df = st.session_state.s_curve_params
 
-def highlight_building_category_condition(r):
-    if r.name == (select_building_category, select_building_condition):
-        return ['font-weight: bold'] * len(r)
-    else:
-        return [''] * len(r)
-
-st.dataframe(df.style.apply(highlight_building_category_condition, axis=1))
+st.write('## All scurve parameters')
+st.dataframe(df.style.apply(highlight_building_category_condition, axis=1), height=1500, width='stretch')
+#st.table(df.style.apply(highlight_building_category_condition, axis=1))
