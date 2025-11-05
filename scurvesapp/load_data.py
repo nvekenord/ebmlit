@@ -1,17 +1,17 @@
-import pathlib
 import os
+import pathlib
 import sys
 
-from loguru import logger
-from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel
 import ebm
 import pandas as pd
+from ebm.cmd.helpers import configure_loglevel, load_environment_from_dotenv
+from ebm.model import bema
 from ebm.model.data_classes import YearRange
-
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
 from ebm.model.scurve import SCurve
-from ebm.model import bema
+from loguru import logger
+
 
 def translate_columns(columns: dict) -> dict:
     return {k.replace('_for_measure','').replace('_period_','_'): v for k,v in columns.items() if k not in ['building_category', 'condition']}
@@ -74,8 +74,6 @@ def main() -> None:
     d=load_scurves()
     print(d)
     print(d[2].loc[('house', 'demolition')])
-
-
 
 
 if __name__ == '__main__':

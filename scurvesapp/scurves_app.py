@@ -36,7 +36,7 @@ if st.button("Reload with updated parameters"):
 st.line_chart(scurve.loc[building_category][ [
     'demolition',
     'small_measure',
-    'renovation'
+    'renovation',
 ]])
 
 tabs = st.tabs(building_codes)

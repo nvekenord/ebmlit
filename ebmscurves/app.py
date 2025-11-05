@@ -2,12 +2,12 @@ import pathlib
 from math import ceil
 
 import ebm
+import pandas as pd
 import streamlit as st
 from ebm.model.building_category import BuildingCategory
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
-import pandas as pd
-
+from ebm.s_curve import scurve_parameters_to_scurve
 
 building_codes = ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK10', 'TEK17']
 st.set_page_config(layout="wide", page_title='EBM s curves')
@@ -16,7 +16,6 @@ filplassering = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated' / 's_c
 dm = DatabaseManager(FileHandler(directory = filplassering.parent))
 
 
-from ebm.s_curve import calculate_s_curves, scurve_parameters_to_scurve
 
 st.title('S Curves for ebm')
 if 'building_category' not in st.session_state:
@@ -67,7 +66,7 @@ if st.session_state.building_category!=select_building_category or st.session_st
 earliest_age = st.sidebar.slider('earliest_age', min_value=1, max_value=69, step=1, value=st.session_state.earliest_age_for_measure)
 average_age_for_measure = st.sidebar.slider('average_age_for_measure', min_value=1, max_value=69, step=1, value=st.session_state.average_age_for_measure)
 rush_period_years = st.sidebar.slider('rush_period_years', min_value=1, max_value=69, step=1, value=st.session_state.rush_period_years)
-print('min_value=', ceil(average_age_for_measure+(rush_period_years/2))+1)
+
 last_age_for_measure = st.sidebar.slider('last_age_for_measure',
                                          min_value=ceil(average_age_for_measure+(rush_period_years/2))+1,
                                          max_value=130, step=1,
@@ -90,7 +89,7 @@ st.write(f"# s-curve {select_building_category} ")
 st.line_chart(s_curves.loc[select_building_category][ [
     'demolition_acc',
     'small_measure_acc',
-    'renovation_acc'
+    'renovation_acc',
 ]])
 
 st.session_state.building_category = select_building_category
