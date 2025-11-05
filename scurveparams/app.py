@@ -16,7 +16,7 @@ def highlight_building_category_condition(r):
         return [''] * len(r)
 
 building_codes = ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK10', 'TEK17']
-page_title = 'EBM s curves'
+page_title = 'EBM S-Curve Parameter Editor'
 st.set_page_config(layout="wide", page_title=page_title)
 
 filplassering = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated' / 's_curve.csv'
