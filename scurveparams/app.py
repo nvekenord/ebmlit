@@ -62,10 +62,27 @@ if st.session_state.building_category!=select_building_category or st.session_st
     st.session_state.building_category = select_building_category
     st.session_state.building_condition = select_building_condition
 
+selected_scurve_params = scurve_params.loc[select_building_category, select_building_condition]
 
-earliest_age = st.sidebar.slider('earliest_age', min_value=1, max_value=69, step=1, value=st.session_state.earliest_age_for_measure)
-average_age_for_measure = st.sidebar.slider('average_age_for_measure', min_value=1, max_value=69, step=1, value=st.session_state.average_age_for_measure)
-rush_period_years = st.sidebar.slider('rush_period_years', min_value=1, max_value=69, step=1, value=st.session_state.rush_period_years)
+# Add s curve editor columns to UI
+earliest_age = st.sidebar.slider(
+    f'earliest_age ({selected_scurve_params.earliest_age_for_measure})', value=st.session_state.earliest_age_for_measure,
+    min_value=1, max_value=69, step=1)
+average_age_for_measure = st.sidebar.slider(
+    f'average_age_for_measure ({selected_scurve_params.average_age_for_measure})', value=st.session_state.average_age_for_measure,
+    min_value=1, max_value=69, step=1)
+rush_period_years = st.sidebar.slider(
+    f'rush_period_years ({selected_scurve_params.rush_period_years})', value=st.session_state.rush_period_years,
+    min_value=1, max_value=69, step=1)
+last_age_for_measure = st.sidebar.slider(
+    f'last_age_for_measure ({selected_scurve_params.last_age_for_measure})', value=st.session_state.last_age_for_measure,
+    min_value=ceil(average_age_for_measure+(rush_period_years/2))+1, max_value=130, step=1)
+rush_share = st.sidebar.number_input(
+    f'rush_share ({selected_scurve_params.rush_share})', value=st.session_state.rush_share,
+    min_value=0.0, max_value=1.0, step=0.01)
+never_share = st.sidebar.number_input(
+    f'never_share ({selected_scurve_params.never_share})', value=st.session_state.never_share,
+    min_value=0.0, max_value=1.0, step=0.01)
 
 last_age_for_measure = st.sidebar.slider('last_age_for_measure',
                                          min_value=ceil(average_age_for_measure+(rush_period_years/2))+1,
