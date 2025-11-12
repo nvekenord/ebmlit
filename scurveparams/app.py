@@ -101,10 +101,19 @@ s_curves = pd.pivot_table(s_curves.reset_index(), index=['building_category', 'a
 
 st.write(f"## {select_building_category.capitalize()} ")
 
+st.write(f"### Scurves accumulated")
 st.line_chart(s_curves.loc[select_building_category][ [
     'demolition_acc',
     'small_measure_acc',
     'renovation_acc',
+]])
+
+st.write(f"### Scurves by age")
+st.line_chart(s_curves.loc[select_building_category][ [
+    'demolition',
+    'small_measure',
+    'renovation',
+    # select_building_condition,
 ]])
 
 # Save selected category and condition to state so that changes can be detected.
