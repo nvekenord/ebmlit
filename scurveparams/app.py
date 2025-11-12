@@ -125,3 +125,13 @@ df = st.session_state.s_curve_params
 st.write('## All scurve parameters')
 st.dataframe(df.style.apply(highlight_building_category_condition, axis=1), height=1500, width='stretch')
 #st.table(df.style.apply(highlight_building_category_condition, axis=1))
+
+# Convert to CSV
+csv = df.to_csv(index=True).encode('utf-8')
+
+st.download_button(
+    label="Download s_curve_parameters.csv",
+    data=csv,
+    file_name="s_curve_parameters.csv",
+    mime="text/csv"
+)
