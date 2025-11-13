@@ -101,20 +101,24 @@ s_curves = pd.pivot_table(s_curves.reset_index(), index=['building_category', 'a
 
 st.write(f"## {select_building_category.capitalize()} ")
 
+show_demolition = st.checkbox(label="demolition", value=True, disabled=select_building_condition=='demolition') or select_building_condition=='demolition'
+show_small_measure = st.checkbox(label="small_measure", value=True, disabled=select_building_condition=='small_measure') or select_building_condition=='small_measure'
+show_renovation = st.checkbox(label="renovation", value=True, disabled=select_building_condition=='renovation') or select_building_condition=='renovation'
+
 st.write(f"### Scurves accumulated")
-st.line_chart(s_curves.loc[select_building_category][ [
-    'demolition_acc',
-    'small_measure_acc',
-    'renovation_acc',
-]])
+show_conditions = []
+if show_demolition:
+    show_conditions.append(('demolition', 'demolition_acc', '#ff4137'))
+if show_small_measure:
+    show_conditions.append(('small_measure', 'small_measure_acc', '#85c7fc'))
+if show_renovation:
+    show_conditions.append(('renovation', 'renovation_acc', '#1766c5'))
+
+st.line_chart(s_curves.loc[select_building_category][[c[1] for c in show_conditions]], color=[c[2] for c in show_conditions]
+              )
 
 st.write(f"### Scurves by age")
-st.line_chart(s_curves.loc[select_building_category][ [
-    'demolition',
-    'small_measure',
-    'renovation',
-    # select_building_condition,
-]])
+st.line_chart(s_curves.loc[select_building_category][ [c[0] for c in show_conditions]], color=[c[2] for c in show_conditions])
 
 # Save selected category and condition to state so that changes can be detected.
 st.session_state.building_category = select_building_category
