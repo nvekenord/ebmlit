@@ -101,17 +101,17 @@ s_curves = pd.pivot_table(s_curves.reset_index(), index=['building_category', 'a
 
 st.write(f"## {select_building_category.capitalize()} ")
 
-show_demolition = st.checkbox(label="demolition", value=True, disabled=select_building_condition=='demolition') or select_building_condition=='demolition'
-show_small_measure = st.checkbox(label="small_measure", value=True, disabled=select_building_condition=='small_measure') or select_building_condition=='small_measure'
-show_renovation = st.checkbox(label="renovation", value=True, disabled=select_building_condition=='renovation') or select_building_condition=='renovation'
+hide_demolition = st.checkbox(label="hide demolition", value=False, disabled=select_building_condition == 'demolition') and select_building_condition != 'demolition'
+hide_small_measure = st.checkbox(label="hide small_measure", value=False, disabled=select_building_condition == 'small_measure') and select_building_condition != 'small_measure'
+hide_renovation = st.checkbox(label="hide renovation", value=False, disabled=select_building_condition == 'renovation') and select_building_condition != 'renovation'
 
 st.write(f"### Scurves accumulated")
 show_conditions = []
-if show_demolition:
+if not hide_demolition:
     show_conditions.append(('demolition', 'demolition_acc', '#ff4137'))
-if show_small_measure:
+if not hide_small_measure:
     show_conditions.append(('small_measure', 'small_measure_acc', '#85c7fc'))
-if show_renovation:
+if not hide_renovation:
     show_conditions.append(('renovation', 'renovation_acc', '#1766c5'))
 
 st.line_chart(s_curves.loc[select_building_category][[c[1] for c in show_conditions]], color=[c[2] for c in show_conditions]
