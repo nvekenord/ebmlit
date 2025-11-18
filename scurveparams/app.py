@@ -2,6 +2,7 @@ import pathlib
 from math import ceil
 
 import ebm
+from ebm.__version__ import version as ebm_version
 import pandas as pd
 import streamlit as st
 from ebm.model.building_category import BuildingCategory
@@ -21,10 +22,14 @@ st.set_page_config(layout="wide", page_title=page_title)
 
 filplassering = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated' / 's_curve.csv'
 dm = DatabaseManager(FileHandler(directory = filplassering.parent))
+repo_url = 'https://github.com/nvekenord/ebmlit'
 
 scurve_params = dm.get_scurve_params().set_index(['building_category', 'condition'])
 
 st.title('S Curves for ebm')
+
+st.markdown(f"Using input from :blue-badge[{filplassering.parent.name}]")
+
 if 'building_category' not in st.session_state:
     st.session_state.building_category = 'house'
 if 'building_condition' not in st.session_state:
@@ -139,3 +144,11 @@ st.download_button(
     file_name="s_curve_parameters.csv",
     mime="text/csv"
 )
+
+st.markdown(
+    f"""
+    <a href="{repo_url}" target="_blank"><img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="25" style="vertical-align:middle; margin-right:8px; text-decoration:none;">ebmlit.scurveparams</a>
+    """,
+    unsafe_allow_html=True)
+
+st.badge(f'ebm {ebm_version}')
