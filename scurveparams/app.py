@@ -2,19 +2,19 @@ import pathlib
 from math import ceil
 
 import ebm
-from ebm.__version__ import version as ebm_version
 import pandas as pd
 import streamlit as st
+from ebm.__version__ import version as ebm_version
 from ebm.model.building_category import BuildingCategory
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
 from ebm.s_curve import scurve_parameters_to_scurve
 
+
 def highlight_building_category_condition(r):
     if r.name == (select_building_category, select_building_condition):
         return ['font-weight: bold'] * len(r)
-    else:
-        return [''] * len(r)
+    return [''] * len(r)
 
 building_codes = ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK10', 'TEK17']
 page_title = 'EBM S-Curve Parameter Editor'
@@ -23,6 +23,7 @@ st.set_page_config(layout="wide", page_title=page_title)
 filplassering = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated' / 's_curve.csv'
 dm = DatabaseManager(FileHandler(directory = filplassering.parent))
 repo_url = 'https://github.com/nvekenord/ebmlit'
+github_icon='https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png'
 
 scurve_params = dm.get_scurve_params().set_index(['building_category', 'condition'])
 
@@ -106,11 +107,18 @@ s_curves = pd.pivot_table(s_curves.reset_index(), index=['building_category', 'a
 
 st.write(f"## {select_building_category.capitalize()} ")
 
-hide_demolition = st.checkbox(label="hide demolition", value=False, disabled=select_building_condition == 'demolition') and select_building_condition != 'demolition'
-hide_small_measure = st.checkbox(label="hide small_measure", value=False, disabled=select_building_condition == 'small_measure') and select_building_condition != 'small_measure'
-hide_renovation = st.checkbox(label="hide renovation", value=False, disabled=select_building_condition == 'renovation') and select_building_condition != 'renovation'
+hide_demolition = st.checkbox(label="hide demolition",
+                              value=False,
+                              disabled=select_building_condition == 'demolition') and select_building_condition != 'demolition'
+hide_small_measure = st.checkbox(label="hide small_measure",
+                                 value=False,
+                                 disabled=select_building_condition == 'small_measure') and select_building_condition != 'small_measure'
 
-st.write(f"### Scurves accumulated")
+hide_renovation = st.checkbox(label="hide renovation",
+                              value=False,
+                              disabled=select_building_condition == 'renovation') and select_building_condition != 'renovation'
+
+st.write("### Scurves accumulated")
 show_conditions = []
 if not hide_demolition:
     show_conditions.append(('demolition', 'demolition_acc', '#ff4137'))
@@ -119,10 +127,10 @@ if not hide_small_measure:
 if not hide_renovation:
     show_conditions.append(('renovation', 'renovation_acc', '#1766c5'))
 
-st.line_chart(s_curves.loc[select_building_category][[c[1] for c in show_conditions]], color=[c[2] for c in show_conditions]
+st.line_chart(s_curves.loc[select_building_category][[c[1] for c in show_conditions]], color=[c[2] for c in show_conditions],
               )
 
-st.write(f"### Scurves by age")
+st.write("### Scurves by age")
 st.line_chart(s_curves.loc[select_building_category][ [c[0] for c in show_conditions]], color=[c[2] for c in show_conditions])
 
 # Save selected category and condition to state so that changes can be detected.
@@ -142,12 +150,14 @@ st.download_button(
     label="Download s_curve_parameters.csv",
     data=csv,
     file_name="s_curve_parameters.csv",
-    mime="text/csv"
+    mime="text/csv",
 )
+
 
 st.markdown(
     f"""
-    <a href="{repo_url}" target="_blank"><img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="25" style="vertical-align:middle; margin-right:8px; text-decoration:none;">ebmlit.scurveparams</a>
+    <a href="{repo_url}" target="_blank" style="text-decoration:none;">
+        <img src="{github_icon}" width="25" style="vertical-align:middle; margin-right:8px;">ebmlit.scurveparams</a>
     """,
     unsafe_allow_html=True)
 
