@@ -16,16 +16,16 @@ from loguru import logger
 def translate_columns(columns: dict) -> dict:
     return {k.replace('_for_measure','').replace('_period_','_'): v for k,v in columns.items() if k not in ['building_category', 'condition']}
 
-def load_scurves(scurve_parameters=None):
-    filplassering = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated' / 's_curve.csv'
-    dm = DatabaseManager(FileHandler(directory = filplassering.parent))
+def load_scurves(scurve_parameters=None, input_directory=None):
+    directory = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated' if not input_directory else input_directory
+    dm = DatabaseManager(FileHandler(directory =directory))
 
     logger.info(scurve_parameters)
     from ebm.s_curve import calculate_s_curves
 
     scurve_parameters = dm.get_scurve_params() if scurve_parameters is None else scurve_parameters
     building_code_parameters= dm.get_building_code_params()
-    df_area = dm.get_area_parameters()
+
     years=YearRange(2020, 2050)
 
     s_curves = []
