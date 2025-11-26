@@ -1,20 +1,28 @@
 import pathlib
+import sys
 
 import streamlit as st
+import ebm
 from ebm.model.building_category import BuildingCategory
 from load_data import load_scurves
 
-scurve, building_code_s_curves, df_with_area, scurve_params, building_code_parameters = load_scurves()
+DEFAULT_CALIBRATED = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated'
+filplassering = pathlib.Path(sys.argv[1] ) if len(sys.argv) > 1 else DEFAULT_CALIBRATED
+
+
+
+scurve, building_code_s_curves, df_with_area, scurve_params, building_code_parameters = load_scurves(input_directory=filplassering)
 
 building_codes = ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK10', 'TEK17']
 st.set_page_config(layout="wide", page_title='EBM s curves')
 
-
+input_location = filplassering.name if filplassering!= DEFAULT_CALIBRATED else f'(ebm default)/ {filplassering.name}'
 
 select_building_category = st.sidebar.selectbox("building_category",
                                                 options=[str(bc) for bc in BuildingCategory],
                                                 accept_new_options=False)
 st.write(f"# s-curve {select_building_category} ")
+st.markdown(f"Using input from :blue-badge[{input_location}]")
 
 building_category = select_building_category
 
