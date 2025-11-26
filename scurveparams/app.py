@@ -101,12 +101,14 @@ rush_share = st.sidebar.number_input(
     f'rush_share ({selected_scurve_params.rush_share})', value=st.session_state.rush_share,
     min_value=0.0,
     max_value=1.0,
-    step=0.0001)
+    format='%0.4f',
+    step=0.01)
 never_share = st.sidebar.number_input(
     f'never_share ({selected_scurve_params.never_share})', value=st.session_state.never_share,
     min_value=0.0,
     max_value=1.0,
-    step=0.0001)
+    format='%0.4f',
+    step=0.01)
 
 # Update session_state.s_curve_params from UI
 st.session_state.s_curve_params.at[(select_building_category, select_building_condition), 'earliest_age_for_measure'] = earliest_age
@@ -155,7 +157,6 @@ df = st.session_state.s_curve_params
 
 st.write('## All scurve parameters')
 st.dataframe(df.style.apply(highlight_building_category_condition, axis=1), height=1500, width='stretch')
-#st.table(df.style.apply(highlight_building_category_condition, axis=1))
 
 # Convert to CSV
 csv = df.to_csv(index=True).encode('utf-8')
