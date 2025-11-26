@@ -30,7 +30,17 @@ building_code_s_curves = building_code_s_curves.loc[select_building_category]
 df_with_area = df_with_area.loc[select_building_category]
 building_category_scurve_params = scurve_params.loc[select_building_category]
 
-edited_scurve_params = st.data_editor(building_category_scurve_params)
+edited_scurve_params = st.data_editor(
+    building_category_scurve_params,
+    column_config={
+        "condition": st.column_config.NumberColumn("Condition", help="building_condition", disabled=True),
+        "earliest_age_for_measure": st.column_config.NumberColumn("Earliest age", help="earliest_age_for_measure"),
+        "average_age_for_measure": st.column_config.NumberColumn("Average age", help="average_age_for_measure"),
+        "rush_period_years": st.column_config.NumberColumn("Rush period", help="rush_period_years"),
+        "last_age_for_measure": st.column_config.NumberColumn("Last age", help="last_age_for_measure"),
+        "rush_share": st.column_config.NumberColumn("Rush share", help="rush_share", format="%.4f"),
+        "never_share": st.column_config.NumberColumn("Never share", help="rush_share", format="%.4f"),
+        })
 
 if st.button("Reload with updated parameters"):
     scurve_params.loc[building_category, 'demolition'] = edited_scurve_params.loc['demolition']
