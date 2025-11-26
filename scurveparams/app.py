@@ -21,6 +21,8 @@ page_title = 'EBM S-Curve Parameter Editor'
 st.set_page_config(layout="wide", page_title=page_title)
 
 filplassering = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated' / 's_curve.csv'
+filplassering = pathlib.Path(__file__).parent.parent / 'skurver'/ 's_curve.csv'
+
 dm = DatabaseManager(FileHandler(directory = filplassering.parent))
 repo_url = 'https://github.com/nvekenord/ebmlit'
 github_icon='https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png'
@@ -77,16 +79,24 @@ selected_scurve_params = scurve_params.loc[select_building_category, select_buil
 # Add s curve editor columns to UI
 earliest_age = st.sidebar.slider(
     f'earliest_age ({selected_scurve_params.earliest_age_for_measure})', value=st.session_state.earliest_age_for_measure,
-    min_value=1, max_value=69, step=1)
+    min_value=1,
+    max_value=200,
+    step=1)
 average_age_for_measure = st.sidebar.slider(
     f'average_age_for_measure ({selected_scurve_params.average_age_for_measure})', value=st.session_state.average_age_for_measure,
-    min_value=1, max_value=69, step=1)
+    min_value=1,
+    max_value=200,
+    step=1)
 rush_period_years = st.sidebar.slider(
     f'rush_period_years ({selected_scurve_params.rush_period_years})', value=st.session_state.rush_period_years,
-    min_value=1, max_value=69, step=1)
+    min_value=1,
+    max_value=200,
+    step=1)
 last_age_for_measure = st.sidebar.slider(
     f'last_age_for_measure ({selected_scurve_params.last_age_for_measure})', value=st.session_state.last_age_for_measure,
-    min_value=ceil(average_age_for_measure+(rush_period_years/2))+1, max_value=130, step=1)
+    min_value=1, #min(ceil(average_age_for_measure+(rush_period_years/2))+1, 149),
+    max_value=200,
+    step=1)
 rush_share = st.sidebar.number_input(
     f'rush_share ({selected_scurve_params.rush_share})', value=st.session_state.rush_share,
     min_value=0.0, max_value=1.0, step=0.01)
