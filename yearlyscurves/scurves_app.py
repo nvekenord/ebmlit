@@ -1,22 +1,34 @@
+import os
 import pathlib
 import sys
 
 import streamlit as st
 import ebm
+from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel
 from ebm.model.building_category import BuildingCategory
 from load_data import load_scurves
 
 DEFAULT_CALIBRATED = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated'
-filplassering = pathlib.Path(sys.argv[1] ) if len(sys.argv) > 1 else DEFAULT_CALIBRATED
 
+load_environment_from_dotenv()
+configure_loglevel()
 
+DEFAULT_PATH = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated'
 
-scurve, building_code_s_curves, df_with_area, scurve_params, building_code_parameters = load_scurves(input_directory=filplassering)
+input_path = pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', DEFAULT_PATH))
+if not input_path.exists():
+    raise NotADirectoryError('%s is not a directory', input_path)
+if not (input_path / 's_curve.csv').is_file():
+    raise FileNotFoundError('%s is not a file', input_path / 's_curve.csv')
+
+input_location = input_path.name if input_path!= DEFAULT_PATH else f'(ebm default)/ {input_path.name}'
+
+scurve, building_code_s_curves, df_with_area, scurve_params, building_code_parameters = load_scurves(input_directory=input_path)
 
 building_codes = ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK10', 'TEK17']
 st.set_page_config(layout="wide", page_title='EBM s curves')
 
-input_location = filplassering.name if filplassering!= DEFAULT_CALIBRATED else f'(ebm default)/ {filplassering.name}'
+input_location = input_path.name if input_path!= DEFAULT_CALIBRATED else f'(ebm default)/ {input_path.name}'
 
 select_building_category = st.sidebar.selectbox("building_category",
                                                 options=[str(bc) for bc in BuildingCategory],

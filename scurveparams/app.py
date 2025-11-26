@@ -1,3 +1,4 @@
+import os
 import pathlib
 from math import ceil
 
@@ -5,6 +6,7 @@ import ebm
 import pandas as pd
 import streamlit as st
 from ebm.__version__ import version as ebm_version
+from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel
 from ebm.model.building_category import BuildingCategory
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
@@ -20,10 +22,19 @@ building_codes = ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK10', 'TEK
 page_title = 'EBM S-Curve Parameter Editor'
 st.set_page_config(layout="wide", page_title=page_title)
 
-filplassering = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated' / 's_curve.csv'
-filplassering = pathlib.Path(__file__).parent.parent / 'skurver'/ 's_curve.csv'
+load_environment_from_dotenv()
+configure_loglevel()
 
-dm = DatabaseManager(FileHandler(directory = filplassering.parent))
+DEFAULT_PATH = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated'
+
+input_path = pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', DEFAULT_PATH))
+input_location = input_path.name if input_path!= DEFAULT_PATH else f'(ebm default)/ {input_path.name}'
+if not input_path.exists():
+    raise NotADirectoryError('%s is not a directory', input_path)
+if not (input_path / 's_curve.csv').is_file():
+    raise FileNotFoundError('%s is not a file', input_path / 's_curve.csv')
+
+dm = DatabaseManager(FileHandler(directory = input_path))
 repo_url = 'https://github.com/nvekenord/ebmlit'
 github_icon='https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png'
 
@@ -31,7 +42,7 @@ scurve_params = dm.get_scurve_params().set_index(['building_category', 'conditio
 
 st.title('S Curves for ebm')
 
-st.markdown(f"Using input from :blue-badge[{filplassering.parent.name}]")
+st.markdown(f"Using input from :blue-badge[{input_location}]")
 
 if 'building_category' not in st.session_state:
     st.session_state.building_category = 'house'
