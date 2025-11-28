@@ -1,3 +1,7 @@
+import pathlib
+import secrets
+from typing import Callable
+
 import pandas as pd
 from ebm import extractors
 from loguru import logger
@@ -13,6 +17,19 @@ from ebm.model import heating_systems_parameter as h_s_param
 import streamlit as st
 
 years = YearRange(2020, 2050)
+
+def cache_dataframe(func: Callable) -> pd.DataFrame:
+    if 'cache_dataframe' not in st.session_state:
+        st.session_state['cache_dataframe'] = secrets.token_hex(8)
+
+    filename = pathlib.Path(f'condemo-{st.session_state["cache_dataframe"]}.csv')
+    if not filename.exists():
+        dataframe = func()
+        dataframe.to_csv(filename)
+    else:
+        dataframe = pd.read_csv(filename)
+
+    return dataframe.set_index(['building_category', 'demolition_construction', 'year']).sort_index()
 
 
 def load_demolition_construction():
@@ -33,12 +50,11 @@ def load_demolition_construction():
     area_change = a_f.transform_area_forecast_to_area_change(area_forecast=area_forecast,
                                                              building_code_parameters=building_code_parameters)
     demolition_construction_long = a_f.transform_demolition_construction(energy_use_kwh, area_change)
-    demolition_construction_long = demolition_construction_long.set_index(['building_category', 'demolition_construction', 'year']).sort_index()
     return demolition_construction_long
 
 
 
-df = load_demolition_construction()
+df = cache_dataframe(load_demolition_construction)
 
 available_building_categories = list(df.index.get_level_values(level='building_category').unique())
 available_building_groups = ['Residential', 'Non-residential', 'All']
@@ -55,7 +71,6 @@ st.markdown(f'# {page_title}')
 
 
 building_category = st.selectbox('building_category', available_building_groups + available_building_categories)
-
 
 demolition_construction = st.selectbox('area type', available_area_types)
 unit = st.selectbox('unit', available_units)
