@@ -1,5 +1,6 @@
 import pathlib
 import secrets
+import time
 from typing import Callable
 
 import pandas as pd
@@ -18,18 +19,61 @@ import streamlit as st
 
 years = YearRange(2020, 2050)
 
-def cache_dataframe(func: Callable) -> pd.DataFrame:
+def cache_dataframe(func: Callable, cache_dir:pathlib.Path|None=None) -> pd.DataFrame:
+    if not cache_dir:
+        cache_dir = pathlib.Path('cache')
+    if not cache_dir.exists():
+        cache_dir.mkdir()
+
     if 'cache_dataframe' not in st.session_state:
         st.session_state['cache_dataframe'] = secrets.token_hex(8)
 
-    filename = pathlib.Path(f'condemo-{st.session_state["cache_dataframe"]}.csv')
+    filename = cache_dir / f'condemo-{st.session_state["cache_dataframe"]}.csv'
+    clean_cache(cache_dir, filename)
+
     if not filename.exists():
         dataframe = func()
         dataframe.to_csv(filename)
     else:
         dataframe = pd.read_csv(filename)
 
-    return dataframe.set_index(['building_category', 'demolition_construction', 'year']).sort_index()
+    return dataframe
+
+
+def clean_cache(cache_dir:pathlib.Path, skip_file:pathlib.Path, delete_after_seconds: int=3600):
+    """
+    Clean up cache files in a directory based on age.
+
+    Parameters
+    ----------
+    cache_dir : pathlib.Path
+        Directory containing cache files to check.
+    skip_file : pathlib.Path
+        A specific file that should not be deleted.
+    delete_after_seconds : int, optional
+        Age threshold in seconds for deletion. Files older than this value
+        will be removed. Default is 3600 (1 hour).
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    OSError
+        For other OS-level errors during file operations.
+    """
+    logger.debug('Clean cache in {directory}', directory=cache_dir)
+
+    for condemo_csv in cache_dir.glob('condemo-*.csv'):
+        try:
+            if condemo_csv != skip_file and time.time() - condemo_csv.stat().st_mtime > delete_after_seconds:
+                logger.info('Deleting {filename}', filename=condemo_csv)
+                condemo_csv.unlink(missing_ok=True)
+            else:
+                logger.debug('Not deleting {filename}', filename=condemo_csv)
+        except (FileNotFoundError, PermissionError, IsADirectoryError, OSError) as ex:
+            logger.debug("{exception}: {filename}", filename=condemo_csv, exception=ex)
 
 
 def load_demolition_construction():
@@ -54,7 +98,7 @@ def load_demolition_construction():
 
 
 
-df = cache_dataframe(load_demolition_construction)
+df = cache_dataframe(load_demolition_construction).set_index(['building_category', 'demolition_construction', 'year']).sort_index()
 
 available_building_categories = list(df.index.get_level_values(level='building_category').unique())
 RESIDENTIAL = 'Residential'
