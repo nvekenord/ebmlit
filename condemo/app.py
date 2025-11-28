@@ -136,8 +136,9 @@ page_title = 'EBM demolition and construction'
 
 st.set_page_config(page_title=page_title)
 st.markdown(f'# {page_title}')
-st.markdown(f"ebm {ebm_version}")
-st.sidebar.markdown(f"Input from :blue-badge[{input_location}]")
+st.markdown(f"ebm version :blue-badge[{ebm_version}]")
+st.markdown(f"ebm input directory :blue-badge[{input_location}]")
+
 
 building_category = st.sidebar.selectbox('building_category', available_building_groups + available_building_categories)
 
@@ -180,4 +181,4 @@ st.markdown(
     """,
     unsafe_allow_html=True)
 
-
+# st.sidebar.markdown(f':gray-badge[{st.session_state.get('cache_dataframe', 'None')}]')
