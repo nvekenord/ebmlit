@@ -1,5 +1,6 @@
 import pandas as pd
 from ebm import extractors
+from loguru import logger
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.s_curve import calculate_s_curves
@@ -33,22 +34,45 @@ area_change = a_f.transform_area_forecast_to_area_change(area_forecast=area_fore
 
 demolition_construction_long = a_f.transform_demolition_construction(energy_use_kwh, area_change)
 
-df = demolition_construction_long.set_index(['building_category', 'demolition_construction', 'year'])
+df = demolition_construction_long.set_index(['building_category', 'demolition_construction', 'year']).sort_index()
 
 
-building_category = st.selectbox('building_category', df.index.get_level_values(level='building_category').unique())
+available_building_categories = list(df.index.get_level_values(level='building_category').unique())
+available_building_groups = ['Residential', 'Non-residential', 'All']
+available_area_types = ['both', 'construction', 'demolition']
+available_units = ['m2', 'gwh']
+
+df['building_group'] = 'Non-residential'
+df.loc[(['apartment_block', 'house'], slice(None), slice(None)), 'building_group'] = 'Residential'
+
+building_category = st.selectbox('building_category', available_building_groups + available_building_categories)
 
 
-st.dataframe(df)
+demolition_construction = st.selectbox('area type', available_area_types)
+unit = st.selectbox('unit', available_units)
+years = st.multiselect('Year', years.year_range, placeholder=f'{years.start}-{years.end}')
 
-df = pd.pivot_table(df, values=['m2'], index=['building_category', 'building_code', 'year'],
-                       columns=['demolition_construction'], aggfunc="sum")
+df = pd.pivot_table(df, values=['m2', 'gwh'], index=['building_category', 'building_group', 'building_code', 'year'],
+                    columns=['demolition_construction'], aggfunc="sum")
 
-st.dataframe(df)
+df=df.reset_index()
+df.columns = ['building_category', 'building_group', 'building_code', 'year', 'construction gwh', 'demolition gwh', 'construction m2', 'demolition m2']
+
+st.dataframe(df[['building_category', 'building_group']])
+
+if building_category in ('Residential', 'Non-residential'):
+    df['building_category'] = df['building_group']
+elif building_category == 'All':
+    df['building_category'] = 'All'
 
 df = df.groupby(by=['building_category', 'building_code', 'year']).sum().xs(level='building_category', key=building_category)
-df = df.reset_index()
-df.columns = ['building_code', 'year', 'construction', 'demolition']
-st.dataframe(df)
 
-st.bar_chart(df, x='year', y=['construction', 'demolition'])
+df = df.reset_index()
+
+if years:
+    year_filter = ", ".join([str(y) for y in years])
+    df = df.query(f'year in [{year_filter}]')
+
+columns = [f'construction {unit}', f'demolition {unit}'] if demolition_construction == 'both' else f'{demolition_construction} {unit}'
+
+st.bar_chart(df, x='year', y=columns)
