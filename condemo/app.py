@@ -110,7 +110,6 @@ input_location = input_path.name if input_path!= DEFAULT_PATH else f'(ebm defaul
 
 DEFAULT_PATH = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated'
 
-
 if not input_path.exists():
     raise NotADirectoryError('%s is not a directory', input_path)
 if not (input_path / 's_curve.csv').is_file():
@@ -138,13 +137,13 @@ page_title = 'EBM demolition and construction'
 st.set_page_config(page_title=page_title)
 st.markdown(f'# {page_title}')
 st.markdown(f"ebm {ebm_version}")
-st.markdown(f"Input from :blue-badge[{input_location}]")
+st.sidebar.markdown(f"Input from :blue-badge[{input_location}]")
 
-building_category = st.selectbox('building_category', available_building_groups + available_building_categories)
+building_category = st.sidebar.selectbox('building_category', available_building_groups + available_building_categories)
 
-demolition_construction = st.selectbox('area type', available_area_types)
-unit = st.selectbox('unit', available_units)
-years = st.multiselect('Year', years.year_range, placeholder=f'{years.start}-{years.end}')
+demolition_construction = st.sidebar.selectbox('area type', available_area_types)
+unit = st.sidebar.selectbox('unit', available_units)
+years = st.sidebar.multiselect('Year', years.year_range, placeholder=f'{years.start}-{years.end}')
 st.markdown(f'## {building_category} {demolition_construction if not demolition_construction == BOTH else ""} {unit}')
 
 df = pd.pivot_table(df, values=['m2', 'gwh'], index=['building_category', 'building_group', 'building_code', 'year'],
