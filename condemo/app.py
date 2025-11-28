@@ -72,6 +72,7 @@ page_title = 'EBM demolition and construction'
 
 st.set_page_config(page_title=page_title)
 st.markdown(f'# {page_title}')
+st.badge(f'ebm {ebm_version}')
 
 
 building_category = st.selectbox('building_category', available_building_groups + available_building_categories)
@@ -80,7 +81,6 @@ demolition_construction = st.selectbox('area type', available_area_types)
 unit = st.selectbox('unit', available_units)
 years = st.multiselect('Year', years.year_range, placeholder=f'{years.start}-{years.end}')
 st.markdown(f'## {building_category} {demolition_construction if not demolition_construction == BOTH else ""} {unit}')
-st.badge(f'ebm {ebm_version}')
 
 df = pd.pivot_table(df, values=['m2', 'gwh'], index=['building_category', 'building_group', 'building_code', 'year'],
                     columns=['demolition_construction'], aggfunc="sum")
