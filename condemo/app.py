@@ -57,12 +57,16 @@ def load_demolition_construction():
 df = cache_dataframe(load_demolition_construction)
 
 available_building_categories = list(df.index.get_level_values(level='building_category').unique())
-available_building_groups = ['Residential', 'Non-residential', 'All']
-available_area_types = ['both', 'construction', 'demolition']
+RESIDENTIAL = 'Residential'
+NONRESIDENTIAL = 'Non-residential'
+ALL_CATEGORIES = 'All'
+available_building_groups = [RESIDENTIAL, NONRESIDENTIAL, ALL_CATEGORIES]
+BOTH = 'both'
+available_area_types = [BOTH, 'construction', 'demolition']
 available_units = ['m2', 'gwh']
 
-df['building_group'] = 'Non-residential'
-df.loc[(['apartment_block', 'house'], slice(None), slice(None)), 'building_group'] = 'Residential'
+df['building_group'] = NONRESIDENTIAL
+df.loc[(['apartment_block', 'house'], slice(None), slice(None)), 'building_group'] = RESIDENTIAL
 
 page_title = 'EBM demolition and construction'
 
@@ -75,7 +79,7 @@ building_category = st.selectbox('building_category', available_building_groups 
 demolition_construction = st.selectbox('area type', available_area_types)
 unit = st.selectbox('unit', available_units)
 years = st.multiselect('Year', years.year_range, placeholder=f'{years.start}-{years.end}')
-st.markdown(f'## {building_category} {demolition_construction if not demolition_construction=="Both" else ""} {unit}')
+st.markdown(f'## {building_category} {demolition_construction if not demolition_construction == BOTH else ""} {unit}')
 st.badge(f'ebm {ebm_version}')
 
 df = pd.pivot_table(df, values=['m2', 'gwh'], index=['building_category', 'building_group', 'building_code', 'year'],
@@ -84,10 +88,10 @@ df = pd.pivot_table(df, values=['m2', 'gwh'], index=['building_category', 'build
 df=df.reset_index()
 df.columns = ['building_category', 'building_group', 'building_code', 'year', 'construction gwh', 'demolition gwh', 'construction m2', 'demolition m2']
 
-if building_category in ('Residential', 'Non-residential'):
+if building_category in (RESIDENTIAL, NONRESIDENTIAL):
     df['building_category'] = df['building_group']
-elif building_category == 'All':
-    df['building_category'] = 'All'
+elif building_category == ALL_CATEGORIES:
+    df['building_category'] = ALL_CATEGORIES
 
 df = df.groupby(by=['building_category', 'building_code', 'year']).sum().xs(level='building_category', key=building_category)
 
@@ -97,15 +101,12 @@ if years:
     year_filter = ", ".join([str(y) for y in years])
     df = df.query(f'year in [{year_filter}]')
 
-columns = [f'construction {unit}', f'demolition {unit}'] if demolition_construction == 'both' else f'{demolition_construction} {unit}'
+columns = [f'construction {unit}', f'demolition {unit}'] if demolition_construction == BOTH else f'{demolition_construction} {unit}'
 
 st.bar_chart(df, x='year', y=columns)
 
 repo_url = 'https://github.com/nvekenord/ebmlit'
 github_icon='https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png'
-
-
-
 
 
 st.markdown(
