@@ -1,10 +1,14 @@
+import os
 import pathlib
 import secrets
 import time
 from typing import Callable
 
+import ebm
 import pandas as pd
 from ebm import extractors
+from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel
+from ebm.model.file_handler import FileHandler
 from loguru import logger
 
 from ebm.__version__ import version as ebm_version
@@ -16,6 +20,9 @@ from ebm.model import energy_need as e_n
 from ebm.model import energy_use as e_u
 from ebm.model import heating_systems_parameter as h_s_param
 import streamlit as st
+
+load_environment_from_dotenv()
+configure_loglevel()
 
 years = YearRange(2020, 2050)
 
@@ -76,8 +83,7 @@ def clean_cache(cache_dir:pathlib.Path, skip_file:pathlib.Path, delete_after_sec
             logger.debug("{exception}: {filename}", filename=condemo_csv, exception=ex)
 
 
-def load_demolition_construction():
-    database_manager = DatabaseManager()
+def load_demolition_construction(database_manager:DatabaseManager) ->pd.DataFrame:
     scurve_parameters = database_manager.get_scurve_params()  # 📍
     area_parameters = database_manager.get_area_parameters()  # 📍
     area_parameters['year'] = years.start
@@ -97,8 +103,23 @@ def load_demolition_construction():
     return demolition_construction_long
 
 
+DEFAULT_PATH = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated'
 
-df = cache_dataframe(load_demolition_construction).set_index(['building_category', 'demolition_construction', 'year']).sort_index()
+input_path = pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', DEFAULT_PATH))
+input_location = input_path.name if input_path!= DEFAULT_PATH else f'(ebm default)/ {input_path.name}'
+
+DEFAULT_PATH = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated'
+
+
+if not input_path.exists():
+    raise NotADirectoryError('%s is not a directory', input_path)
+if not (input_path / 's_curve.csv').is_file():
+    raise FileNotFoundError('%s is not a file', input_path / 's_curve.csv')
+
+dm = DatabaseManager(FileHandler(directory = input_path))
+
+
+df = cache_dataframe(lambda: load_demolition_construction(dm)).set_index(['building_category', 'demolition_construction', 'year']).sort_index()
 
 available_building_categories = list(df.index.get_level_values(level='building_category').unique())
 RESIDENTIAL = 'Residential'
@@ -116,8 +137,8 @@ page_title = 'EBM demolition and construction'
 
 st.set_page_config(page_title=page_title)
 st.markdown(f'# {page_title}')
-st.badge(f'ebm {ebm_version}')
-
+st.markdown(f"ebm {ebm_version}")
+st.markdown(f"Input from :blue-badge[{input_location}]")
 
 building_category = st.selectbox('building_category', available_building_groups + available_building_categories)
 
