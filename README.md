@@ -27,3 +27,13 @@ Plot default scurve parameters. Includes a simple editor.
 streamlit run scurveparams/app.py
 
 ```
+
+## construction and demolition bar chart
+
+Bar chart for EBM demolition and construction 
+
+```shell
+
+streamlit run condemo/app.py
+
+```
