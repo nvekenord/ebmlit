@@ -10,7 +10,10 @@ from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel
 from ebm.model.building_category import BuildingCategory
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
-from ebm.s_curve import scurve_parameters_to_scurve
+try:
+    from ebm.s_curve import scurve_parameters_to_scurve
+except ImportError:
+    from ebm.areaforecast.s_curve import scurve_from_s_curve_parameters as scurve_parameters_to_scurve
 
 
 def highlight_building_category_condition(r):
@@ -38,10 +41,13 @@ dm = DatabaseManager(FileHandler(directory = input_path))
 repo_url = 'https://github.com/nvekenord/ebmlit'
 github_icon='https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png'
 
+ebm_location = pathlib.Path(ebm.__path__[0])
+
 scurve_params = dm.get_scurve_params().set_index(['building_category', 'condition'])
 
 st.title('S Curves for ebm')
 
+st.badge(f'ebm {ebm_version} from {ebm_location}')
 st.markdown(f"Using input from :blue-badge[{input_location}]")
 
 if 'building_category' not in st.session_state:
@@ -130,6 +136,8 @@ st.session_state.s_curve_params.at[(select_building_category, select_building_co
 st.session_state.s_curve_params.at[(select_building_category, select_building_condition), 'never_share'] = never_share
 
 s_curves = scurve_parameters_to_scurve(st.session_state.s_curve_params.reset_index())
+if 'scurve' not in s_curves.columns:
+    s_curves['scurve'] = s_curves['rate_acc']
 s_curves = pd.pivot_table(s_curves.reset_index(), index=['building_category', 'age'], columns=['building_condition'], values='scurve')
 
 st.write(f"## {select_building_category.capitalize()} ")
@@ -144,6 +152,7 @@ hide_small_measure = st.checkbox(label="hide small_measure",
 hide_renovation = st.checkbox(label="hide renovation",
                               value=False,
                               disabled=select_building_condition == 'renovation') and select_building_condition != 'renovation'
+
 
 st.write("### Scurves accumulated")
 show_conditions = []
@@ -187,4 +196,3 @@ st.markdown(
     """,
     unsafe_allow_html=True)
 
-st.badge(f'ebm {ebm_version}')
