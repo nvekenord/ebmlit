@@ -125,8 +125,7 @@ else:
         chart_df = pd.pivot_table(df, values=[unit.lower()], index=reversed(chart_grouping),
                                aggfunc="sum").reset_index()
         st.bar_chart(chart_df,
-                     x='year', y=unit.lower(), color='category'
-                                         '', stack='stacked' in stack_categories,
+                     x='year', y=unit.lower(), color='category', stack='stacked' in stack_categories,
                      horizontal='horizontal' in stack_categories)
 
     st.dataframe(df[['category', 'demolition_construction', 'year', 'm2', 'gwh']])
