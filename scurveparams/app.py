@@ -47,8 +47,8 @@ scurve_params = dm.get_scurve_params().set_index(['building_category', 'conditio
 
 st.title('S Curves for ebm')
 
-st.badge(f'ebm {ebm_version} from {ebm_location}')
-st.markdown(f"Using input from :blue-badge[{input_location}]")
+st.markdown(f"{ebm_location} :blue-badge[{ebm_version}]")
+st.markdown(f"Using input from :blue-badge[{input_location}] (EBM_INPUT_DIRECTORY)")
 
 if 'building_category' not in st.session_state:
     st.session_state.building_category = 'house'

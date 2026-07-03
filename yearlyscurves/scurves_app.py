@@ -6,6 +6,7 @@ import streamlit as st
 import ebm
 from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel
 from ebm.model.building_category import BuildingCategory
+from ebm.__version__ import version as ebm_version
 from load_data import load_scurves
 
 DEFAULT_CALIBRATED = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated'
@@ -13,6 +14,7 @@ DEFAULT_CALIBRATED = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated'
 load_environment_from_dotenv()
 configure_loglevel()
 
+ebm_location = pathlib.Path(ebm.__path__[0])
 DEFAULT_PATH = pathlib.Path(ebm.__file__).parent / 'data' / 'calibrated'
 
 input_path = pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', DEFAULT_PATH))
@@ -34,6 +36,9 @@ select_building_category = st.sidebar.selectbox("building_category",
                                                 options=[str(bc) for bc in BuildingCategory],
                                                 accept_new_options=False)
 st.write(f"# s-curve {select_building_category} ")
+
+st.markdown(f"{ebm_location} :blue-badge[{ebm_version}]")
+
 st.markdown(f"Using input from :blue-badge[{input_location}]")
 
 building_category = select_building_category
