@@ -175,6 +175,20 @@ st.session_state.building_condition = select_building_condition
 
 df = st.session_state.s_curve_params
 
+st.write(f"""
+### Python definition
+```python
+# {select_building_category}_{select_building_condition} =
+SCurve(earliest_age={earliest_age}, 
+        average_age={average_age_for_measure}, 
+        rush_years={rush_period_years}, 
+        rush_share={rush_share}, 
+        last_age={last_age_for_measure}, 
+        never_share={never_share}
+        )
+```
+""")
+
 st.write('## All scurve parameters')
 st.dataframe(df.style.apply(highlight_building_category_condition, axis=1), height=1500, width='stretch')
 
